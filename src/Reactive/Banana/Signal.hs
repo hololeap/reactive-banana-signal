@@ -6,6 +6,8 @@ import Control.Event.Handler
 import Control.Monad
 import Control.Monad.IO.Class
 import Data.Foldable
+import Data.Functor
+import Data.Maybe
 import Reactive.Banana
 import Reactive.Banana.Frameworks
 import System.Signal
@@ -32,3 +34,6 @@ registerSignal s = do
 signalsEvent :: [Signal] -> MomentIO (Event [Signal])
 signalsEvent = 
     fmap fold . traverse (fmap (fmap pure) . fromAddHandler <=< registerSignal)
+
+findE :: Foldable f => (a -> Bool) -> Event (f a) -> Event a
+findE f = filterJust . fmap (find f)

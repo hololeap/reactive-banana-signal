@@ -5,6 +5,7 @@ module Reactive.Banana.Signal where
 import Control.Event.Handler
 import Control.Monad
 import Control.Monad.IO.Class
+import Data.Foldable
 import Reactive.Banana
 import Reactive.Banana.Frameworks
 import System.Signal
@@ -28,6 +29,6 @@ registerSignal s = do
     liftIO $ installHandler s fire
     pure addHandler
 
-signalsEvent :: MomentIO (Event [Signal])
-signalsEvent = foldMap (fmap pure) <$>
-    traverse (fromAddHandler <=< registerSignal) allSignals
+signalsEvent :: [Signal] -> MomentIO (Event [Signal])
+signalsEvent = 
+    fmap fold . traverse (fmap (fmap pure) . fromAddHandler <=< registerSignal)

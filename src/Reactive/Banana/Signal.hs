@@ -1,12 +1,33 @@
+{-# LANGUAGE LambdaCase #-}
 
 module Reactive.Banana.Signal where
 
 import Control.Event.Handler
+import Control.Monad
 import Control.Monad.IO.Class
+import Reactive.Banana
+import Reactive.Banana.Frameworks
 import System.Signal
+
+allSignals :: [Signal]
+allSignals = [sigABRT, sigFPE, sigILL, sigINT, sigSEGV, sigTERM]
+
+showSignal :: Signal -> Maybe String
+showSignal = \case
+    2  -> Just "INT"
+    4  -> Just "ILL"
+    6  -> Just "ABRT"
+    8  -> Just "FPE"
+    11 -> Just "SEGV"
+    15 -> Just "TERM"
+    _  -> Nothing
 
 registerSignal :: MonadIO m => Signal -> m (AddHandler Signal)
 registerSignal s = do
     (addHandler, fire) <- liftIO newAddHandler
     liftIO $ installHandler s fire
     pure addHandler
+
+signalsEvent :: MomentIO (Event [Signal])
+signalsEvent = foldMap (fmap pure) <$>
+    traverse (fromAddHandler <=< registerSignal) allSignals
